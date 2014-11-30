@@ -3,37 +3,28 @@
 (function() {
     'use strict';
 
-    var execFile = require('child_process').execFile;
     var optipng = require('optipng-bin').path;
     var _ = require('lodash');
+    var path = require('path');
+    var os = require('os');
+    var Promise = require('bluebird');
 
-    var check = function( filename, options, overwrite ) {
+    var exec = Promise.promisifyAll( require('child_process') );
+
+    module.exports = function ( filename, options ) {
         var resultFilename, filesize;
-        overwrite = overwrite || false;
 
         _.defaults( options, {
             parameter: ''
         } );
+        resultFilename = path.join( os.tmpdir(), Math.random().toString() + '.png' );
 
         console.log( 'running filter optipng on', filename, 'with', options, 'and overwrite', overwrite );
-        var child = execFile(optipng, ['-out', 'out_optipng.png', filename], function(error, stdout, stderr) {
-            console.log(stdout);
-            console.log(stderr);
-        });
 
-        if ( overwrite ) {
-            resultFilename = filename;
-        } else {
-            resultFilename = filename + '.opti';
-        }
-
-        var result = {
-            filename : resultFilename,
-            filesize : filesize
-        };
-
-        return result;
+        /*
+         * returns a promise of the execution
+         */
+        return exec.execFileAsync( optipng, [ '-out', resultFilename, filename ] );
     };
 
-    exports.check = check;
 }());

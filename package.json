@@ -10,6 +10,12 @@
   "license": "MIT",
   "dependencies": {
     "lodash": "^2.4.1",
-    "optipng-bin": "^2.0.3"
+    "optipng-bin": "^2.0.3",
+    "temp": "^0.8.1",
+    "koa-logger": "^1.2.2",
+    "koa-static": "^1.4.7",
+    "co-busboy": "^1.2.0",
+    "bluebird": "^2.3.11",
+    "koa": "^0.13.0"
   }
 }
