@@ -1,4 +1,4 @@
-/* jshint: node=true, esnext=true */
+/* jshint node:true, esnext:true */
 
 /**
  * Pngsize helps you determine the optimal filesize and quality of your png
@@ -10,39 +10,29 @@
 (function() {
     'use strict';
 
-    var d=console.log;
+    var temp = require('temp').track();
 
-    // Scan dir for filters and require them all
-    var optipng = require('filters/filter-optipng.js');
-
-    //TODO do I still need this? wouln´d os.tmpdir + random not be enough
-    //Maybe the deletion at the end of the process is awesome!
-
-    var temp = require('temp');
-    //TODO when we create a web process, does this still make sense?
-    temp.track();
-
-    d(optipng);
-    // TODO filters may be submodules with their own dependency, so they can care for themselves
-    // if we do so we can make this registry a json -> or just add it to package json
+    // TODO Scan dir for filters and require them all
     var filters = {
-        optipng : optipng,
-        //pngquant : pngquant
+        optipng : require('filters/filter-optipng.js')
     };
 
+    var check;
     /*
      * this is the generator equivalent of
      * [ filterResult1, filterResult2, ...]
      */
-    module.exports = function *( filename ) {
+    module.exports = check = function *( filename ) {
+
         console.log( 'checking file', filename );
+
         for ( var filter in filters ) {
             var ffunc = filters[ filter ];
 
-            //TODO pass in a temp file for the output for every process
             if ( typeof ffunc === 'function' ) {
                 /* yields a promise upwards */
-                yield ffunc( filename, {}, false );
+                yield ffunc( filename );
+                //temp.cleanupSync();
             }
         }
     };
@@ -51,9 +41,15 @@
         return temp.openSync('pngsize-');
     };
 
-    //TODO make it run on command line
-    //if ( require.main === module ) {
-        //var filename = process.argv[ process.argv.length - 1 ];
-        //check( filename );
-    //}
+    if ( require.main === module ) {
+        var filename = process.argv[ process.argv.length - 1 ];
+
+        for ( var promise of check( filename ) ) {
+            promise.then( function( result ) {
+                console.log( 'resultFilename', result[0] );
+                console.log( 'stderr', result[1][0] );
+                console.log( 'stdout', result[1][1] );
+            } );
+        }
+    }
 }());
