@@ -10,12 +10,22 @@
 (function() {
     'use strict';
 
-    var temp = require('temp').track();
+    var Promise = require( 'bluebird' );
+    var fs = Promise.promisifyAll( require( 'fs' ) );
+    var temp = require( 'temp' ).track();
+    var path = require( 'path' );
 
-    // TODO Scan dir for filters and require them all
-    var filters = {
-        optipng : require('filters/filter-optipng.js')
-    };
+    var filters = {};
+
+    fs.readdirAsync( 'filters' ).then( function( files ) {
+        files.forEach( function( file ) {
+            filters[ file ] = require( path.join( 'filters', file ) );
+            console.log( 'pngsize: adding filter', file );
+        } );
+    } ).catch( function( e ) {
+        console.error( 'pngsize: unable to read directory "filters".');
+        throw e;
+    });
 
     var check;
     /*
@@ -27,20 +37,22 @@
         console.log( 'checking file', filename );
 
         for ( var filter in filters ) {
-            var ffunc = filters[ filter ];
+            var ffunc = filters[ filter ].filter;
 
             if ( typeof ffunc === 'function' ) {
                 /* yields a promise upwards */
                 yield ffunc( filename );
-                //temp.cleanupSync();
+                temp.cleanup();
             }
         }
     };
 
-    var create_tmpfile = function() {
-        return temp.openSync('pngsize-');
-    };
-
+    process.on('exit', function() {
+        for ( var filter in filters ) {
+            var ffunc = filters[ filter ].cleanup;
+            ffunc();
+        }
+    })
     if ( require.main === module ) {
         var filename = process.argv[ process.argv.length - 1 ];
 

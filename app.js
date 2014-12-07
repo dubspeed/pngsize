@@ -31,6 +31,7 @@ app.use( function *( next ) {
     var file = file_registry[ this.url ];
     if ( file ) {
         this.type = 'image/png';
+        // TODO sync read?
         this.body = fs.readFileSync( file );
     } else {
         yield next;
@@ -68,6 +69,7 @@ app.use( function *( next ) {
             yield promise.then( function( filter_result ){
                 // we get a full filename like /tmp/e84h8h43/...png and make it /images/...png,
                 // save both in the file registry
+                console.log('then 2');
                 var full_tmp = filter_result[ 0 ],
                     tmp_file = full_tmp.split( '/' );
                     file_url = '/images/' + tmp_file[ tmp_file.length - 1 ],
@@ -92,3 +94,9 @@ app.use( function *( next ) {
 // listen
 app.listen( 3000 );
 console.log( 'listening on port 3000' );
+
+process.on('SIGINT', function() {
+    console.log('pngsize: shutting down and cleaning up');
+    temp.cleanupSync();
+    process.exit(0);
+})
