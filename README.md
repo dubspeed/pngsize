@@ -26,6 +26,11 @@ The easiest way is to use ‘n’ (a node version manager), and switch to node 0
     node --harmony app.js   
 
 connect your browser to `http://localhost:3000`
+ 
+## TODOs
+
+ * refactor code duplication in the filters
+ * send partial results: when a filter is done, send some stuff but tell the client we are not done yet
 
 ## License
 

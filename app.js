@@ -11,7 +11,7 @@ var pngsize = require('./index.js');
 var temp = require('temp').track();
 var Promise = require('bluebird');
 var readFile = Promise.promisify( fs.readFile );
-
+var JSONStream = require('streaming-json-stringify');
 /*
  * all tmp file we have a registerd here
  */
@@ -56,7 +56,12 @@ app.use( function *( next ) {
     // multipart upload
     var parts = parse( this );
     var part;
-    var result_cache = {};
+
+    // Stream the response as [ {}, {} ]
+    var jsonstream = this.body = JSONStream();
+
+    this.type = 'json';
+    jsonstream.on('error', this.onerror);
 
     while ( part = yield parts ) {
         var stream = temp.createWriteStream();
@@ -85,14 +90,13 @@ app.use( function *( next ) {
 
                 file_registry[ file_url ] = full_tmp;
 
-                //TODO id, filter_name
-                result_cache[ filter_result.filter ] = filter_result;
+                jsonstream.write( filter_result );
 
             }.bind( this ) );
         }
     }
 
-    this.body = JSON.stringify(result_cache);
+    jsonstream.end();
 });
 
 

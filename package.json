@@ -2,6 +2,7 @@
   "name": "pngsize",
   "version": "0.0.1",
   "description": "Run png files through various tools to find a optimal image size",
+  "reprository": "dubspeed/pngsize",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -18,6 +19,7 @@
     "optipng-bin": "^2.0.3",
     "pngcrush-bin": "^2.1.1",
     "pngout-bin": "^2.0.1",
+    "streaming-json-stringify": "^1.0.1",
     "temp": "^0.8.1"
   }
 }
