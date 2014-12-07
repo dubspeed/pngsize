@@ -6,10 +6,9 @@ $(document).ready(function() {
             tpl = Handlebars.compile($tpl);
 
         for (var filter_name in data) {
-            var url = data[filter_name];
-            $table.append( tpl({
-                url: url
-            }) );
+            var filter_result = data[filter_name];
+
+            $table.append( tpl( filter_result ) );
         }
     }
 

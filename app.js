@@ -9,6 +9,8 @@ var os = require('os');
 var path = require('path');
 var pngsize = require('./index.js');
 var temp = require('temp').track();
+var Promise = require('bluebird');
+var readFile = Promise.promisify( fs.readFile );
 
 /*
  * all tmp file we have a registerd here
@@ -29,10 +31,12 @@ app.use( function *( next ) {
  */
 app.use( function *( next ) {
     var file = file_registry[ this.url ];
+
     if ( file ) {
         this.type = 'image/png';
-        // TODO sync read?
-        this.body = fs.readFileSync( file );
+        yield readFile( file ).then( function( data ) {
+            this.body = data;
+        }.bind( this ) );
     } else {
         yield next;
     }
@@ -67,21 +71,22 @@ app.use( function *( next ) {
          */
         for ( var promise of pngsize( stream.path ) ) {
             yield promise.then( function( filter_result ){
-                // we get a full filename like /tmp/e84h8h43/...png and make it /images/...png,
+                // we get a full filename like /tmp/e84h8h43/...png
                 // save both in the file registry
-                console.log('then 2');
-                var full_tmp = filter_result[ 0 ],
+                var full_tmp = filter_result.filename,
                     tmp_file = full_tmp.split( '/' );
-                    file_url = '/images/' + tmp_file[ tmp_file.length - 1 ],
-                    command_output = filter_result[ 1 ];
+                    file_url = '/images/' + tmp_file[ tmp_file.length - 1 ];
 
                 tmp_file = tmp_file[ tmp_file.length - 1 ];
 
+                // do not expose internal filenames
+                delete filter_result.filename;
+                filter_result.url = file_url;
+
                 file_registry[ file_url ] = full_tmp;
 
-                // tODO trigger a proper view
-                // send json ?
-                result_cache['filter_name' + Math.random()] = file_url;
+                //TODO id, filter_name
+                result_cache[ filter_result.filter ] = filter_result;
 
             }.bind( this ) );
         }

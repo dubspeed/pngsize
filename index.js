@@ -36,21 +36,25 @@
 
         console.log( 'checking file', filename );
 
-        for ( var filter in filters ) {
-            var ffunc = filters[ filter ].filter;
+        for ( var filterName in filters ) {
+            var filter = filters[ filterName ],
+                filterFunc = filter.filter,
+                inspectFunc = filter.inspect;
 
-            if ( typeof ffunc === 'function' ) {
+            if ( typeof filterFunc === 'function' ) {
                 /* yields a promise upwards */
-                yield ffunc( filename );
+                yield filterFunc( filename ).then( function() {
+                    return inspectFunc.apply( null, arguments );
+                });
                 temp.cleanup();
             }
         }
     };
 
     process.on('exit', function() {
-        for ( var filter in filters ) {
-            var ffunc = filters[ filter ].cleanup;
-            ffunc();
+        for ( var filterName in filters ) {
+            var filterFunc = filters[ filterName ].cleanup;
+            filterFunc();
         }
     })
     if ( require.main === module ) {

@@ -7,7 +7,6 @@
     var _ = require('lodash');
     var path = require('path');
     var os = require('os');
-    var util = require('util');
     var Promise = require('bluebird');
     var temp = require('temp').track();
     var exec = Promise.promisifyAll( require('child_process') );
@@ -20,13 +19,18 @@
      * Inspect the input data and may return usefull
      * interpreation of them
      */
-    //exports.inspect = function( task_output ) {
-        //return task_output;
-    //};
+    exports.inspect = function( data ) {
+        if ( fs.existsSync( data.filename ) ) {
+            var stats = fs.statSync( data.filename );
+        }
+
+        data.size = stats.size;
+        data.filter = 'optipng';
+        return data;
+
+    };
 
     exports.filter = function ( filename, options ) {
-        var filesize;
-
         options = options || {};
 
         _.defaults( options, {
@@ -38,14 +42,21 @@
 
         console.log('filter-optipng: running with', JSON.stringify( options ) );
 
-        var commandLine = [].concat( options.parameters, [ '-out', options.resultFilename, filename ] );
+        var cmd = [].concat( options.parameters, [ '-out', options.resultFilename, filename ] );
 
         /*
          */
-        var promise = exec.execFileAsync( optipng, commandLine );
+        var promise = exec.execFileAsync( optipng, cmd );
 
         promise = promise.then( function( output ) {
-            return [ options.resultFilename, output ];
+            return {
+                filename : options.resultFilename,
+                output : {
+                    stderr : output[ 0 ],
+                    stdout : output[ 1 ]
+                },
+                parameters : options.parameters
+            };
         } );
 
         return promise;
