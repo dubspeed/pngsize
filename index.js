@@ -46,7 +46,6 @@
                 yield filterFunc( filename ).then( function() {
                     return inspectFunc.apply( null, arguments );
                 });
-                temp.cleanup();
             }
         }
     };

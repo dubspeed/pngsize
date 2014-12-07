@@ -3,7 +3,7 @@
 (function() {
     'use strict';
 
-    var optipng = require('optipng-bin').path;
+    var pngcrush = require('pngcrush-bin').path;
     var _ = require('lodash');
     var Promise = require('bluebird');
     var temp = require('temp').track();
@@ -23,7 +23,7 @@
         }
 
         data.size = stats.size;
-        data.filter = 'optipng';
+        data.filter = 'pngcrush';
         return data;
 
     };
@@ -32,19 +32,17 @@
         options = options || {};
 
         _.defaults( options, {
-            parameters: [],
+            parameters: [ '-brute', '-reduce' ],
             resultFilename : temp.path( { suffix : '.png' } )
         } );
 
         temp_path.push( options.resultFilename );
 
-        console.log('filter-optipng: running with', JSON.stringify( options ) );
+        console.log('filter-pngcrush: running with', JSON.stringify( options ) );
 
-        var cmd = [].concat( options.parameters, [ '-out', options.resultFilename, filename ] );
+        var cmd = [].concat( options.parameters, [ filename, options.resultFilename ] );
 
-        /*
-         */
-        var promise = exec.execFileAsync( optipng, cmd );
+        var promise = exec.execFileAsync( pngcrush, cmd );
 
         promise = promise.then( function( output ) {
             return {
@@ -61,7 +59,7 @@
     };
 
     exports.cleanup = function() {
-        console.log('filter-optipng: cleaning up optipng');
+        console.log('filter-pngcrush: cleaning up pngcrush');
         temp.cleanup();
 
         // we used temp.path, this is not tracked by temp
