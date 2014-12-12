@@ -1,16 +1,20 @@
 $(document).ready(function() {
 
-    function buildTable (event, data) {
+    function buildTable (filter_result) {
         var $table = $('#result_table'),
             $tpl = $('#tpl_row').html(),
             tpl = Handlebars.compile($tpl);
 
-        for (var filter_name in data) {
-            var filter_result = data[filter_name];
-
             $table.append( tpl( filter_result ) );
-        }
     }
+
+    // connect to the website
+    var socket = io.connect('http://localhost:3000');
+
+    socket.on('filter update', function (data) {
+        console.log('recived a filter result', data);
+        buildTable(data);
+    });
 
     //Variable to store your files
     var files;
@@ -35,32 +39,15 @@ $(document).ready(function() {
             return;
         }
 
-        var data = new FormData();
+        var reader = new FileReader();
+        reader.onload = function(evt){
+            socket.emit('filter', evt.target.result);
+        };
 
         $.each(files, function(key, value) {
-            data.append(key, value);
+            reader.readAsBinaryString(value);
         });
 
-        $.ajax({
-            url: '/',
-            type: 'POST',
-            data: data,
-            cache: false,
-            dataType: 'json',
-            processData: false, // Don't process the files
-            contentType: false, // Set content type to false as jQuery will tell the server its a query string request
-            success: function(data, textStatus, jqXHR) {
-                if(typeof data.error === 'undefined') {
-                    // Success so call function to process the form
-                    buildTable(event, data);
-                    console.log(data);
-                } else {
-                    console.log('ERRORS: ' + data.error);
-                }
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-                console.log('ERRORS: ' + textStatus);
-            }
-        });
+
     }
 });

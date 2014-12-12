@@ -1,8 +1,9 @@
 /* jshint esnext:true */
+
 var logger = require('koa-logger');
 var serve = require('koa-static');
 var parse = require('co-busboy');
-var koa = require('koa');
+var koa = require('koa.io');
 var fs = require('fs');
 var app = koa();
 var os = require('os');
@@ -47,65 +48,50 @@ app.use( function *( next ) {
  */
 app.use( serve( __dirname + '/views' ) );
 
-/*
- * if it is a POST, handle the upload and run the filters
- */
-app.use( function *( next ) {
-    // ignore non-POSTs
-    if ( 'POST' != this.method ) return yield next;
-    // multipart upload
-    var parts = parse( this );
-    var part;
+// middleware for scoket.io's connect and disconnect
+app.io.use( function* ( next ) {
+    // on connect
+    yield *next;
+    // on disconnect
+} );
 
-    // Stream the response as [ {}, {} ]
-    var jsonstream = this.body = JSONStream();
+// TODO delete tmp files
+app.io.route( 'filter', function* ( next, image_binary ) {
+    var image_buffer = new Buffer( image_binary, 'binary' );
+    var tmp = temp.path( { suffix: '.png' } );
+    fs.writeFileSync( tmp, image_buffer );
 
-    this.type = 'json';
-    jsonstream.on('error', this.onerror);
+    // run the filters
+    for ( var promise of pngsize( tmp ) ) {
+        yield promise.then( function( filter_result ){
+            // we get a full filename like /tmp/e84h8h43/...png
+            // save both in the file registry
+            var full_tmp = filter_result.filename,
+                tmp_file = full_tmp.split( '/' );
+                file_url = '/images/' + tmp_file[ tmp_file.length - 1 ];
 
-    while ( part = yield parts ) {
-        var stream = temp.createWriteStream();
-        part.pipe( stream );
-        yield stream.on.bind( stream, 'finish' );
+            tmp_file = tmp_file[ tmp_file.length - 1 ];
 
-        /* pngsize is a generator that can be looped over with 'for of'
-         * this is equal to calling next().value all the time manually:
-         *   var gen = pngsize(stream.path);
-         *   var promise = gen.next().value,
-         *       promise2 = gen.next().value;
-         */
-        for ( var promise of pngsize( stream.path ) ) {
-            yield promise.then( function( filter_result ){
-                // we get a full filename like /tmp/e84h8h43/...png
-                // save both in the file registry
-                var full_tmp = filter_result.filename,
-                    tmp_file = full_tmp.split( '/' );
-                    file_url = '/images/' + tmp_file[ tmp_file.length - 1 ];
+            // do not expose internal filenames
+            delete filter_result.filename;
+            filter_result.url = file_url;
 
-                tmp_file = tmp_file[ tmp_file.length - 1 ];
+            file_registry[ file_url ] = full_tmp;
 
-                // do not expose internal filenames
-                delete filter_result.filename;
-                filter_result.url = file_url;
+            // emit the results
+            this.emit( 'filter update', filter_result );
 
-                file_registry[ file_url ] = full_tmp;
-
-                jsonstream.write( filter_result );
-
-            }.bind( this ) );
-        }
+        }.bind( this ) );
     }
-
-    jsonstream.end();
-});
-
+} );
 
 // listen
-app.listen( 3000 );
-console.log( 'listening on port 3000' );
+app.listen( 3000, function() {
+    console.log( '*** pngsize: listening on port 3000' );
+} );
 
-process.on('SIGINT', function() {
-    console.log('pngsize: shutting down and cleaning up');
+process.on( 'SIGINT', function() {
+    console.log( '*** pngsize: shutting down and cleaning up' );
     temp.cleanupSync();
-    process.exit(0);
-})
+    process.exit( 0 );
+} );
