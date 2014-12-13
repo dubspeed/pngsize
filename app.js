@@ -9,13 +9,13 @@ var app = koa();
 var os = require('os');
 var path = require('path');
 var pngsize = require('./index.js');
-var temp = require('temp').track();
 var Promise = require('bluebird');
 var readFile = Promise.promisify( fs.readFile );
-var JSONStream = require('streaming-json-stringify');
+var temp = Promise.promisifyAll( require('temp') );
 /*
  * all tmp file we have a registerd here
  */
+temp.track();
 var file_registry = {};
 
 app.use( logger() );
@@ -55,33 +55,33 @@ app.io.use( function* ( next ) {
     // on disconnect
 } );
 
-// TODO delete tmp files
+var run_filter = function( filter_result ) {
+    // we get a full filename like /tmp/e84h8h43/...png
+    // save both in the file registry
+    var full_tmp = filter_result.filename,
+        tmp_file = full_tmp.split( '/' );
+        file_url = '/images/' + tmp_file[ tmp_file.length - 1 ];
+
+    tmp_file = tmp_file[ tmp_file.length - 1 ];
+
+    // do not expose internal filenames
+    delete filter_result.filename;
+    filter_result.url = file_url;
+
+    file_registry[ file_url ] = full_tmp;
+
+    // emit the results
+    this.emit( 'filter update', filter_result );
+};
+
 app.io.route( 'filter', function* ( next, image_binary ) {
     var image_buffer = new Buffer( image_binary, 'binary' );
-    var tmp = temp.path( { suffix: '.png' } );
-    fs.writeFileSync( tmp, image_buffer );
 
-    // run the filters
-    for ( var promise of pngsize( tmp ) ) {
-        yield promise.then( function( filter_result ){
-            // we get a full filename like /tmp/e84h8h43/...png
-            // save both in the file registry
-            var full_tmp = filter_result.filename,
-                tmp_file = full_tmp.split( '/' );
-                file_url = '/images/' + tmp_file[ tmp_file.length - 1 ];
-
-            tmp_file = tmp_file[ tmp_file.length - 1 ];
-
-            // do not expose internal filenames
-            delete filter_result.filename;
-            filter_result.url = file_url;
-
-            file_registry[ file_url ] = full_tmp;
-
-            // emit the results
-            this.emit( 'filter update', filter_result );
-
-        }.bind( this ) );
+    var tmp = temp.createWriteStream();
+    tmp.write( image_buffer );
+    tmp.end();
+    for ( var promise of pngsize( tmp.path ) ) {
+        yield promise.then( run_filter.bind( this ) );
     }
 } );
 

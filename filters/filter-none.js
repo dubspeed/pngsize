@@ -3,46 +3,26 @@
 (function() {
     'use strict';
 
-    var _ = require('lodash');
-    var Promise = require('bluebird');
     var temp = require('temp').track();
-    var exec = Promise.promisifyAll( require('child_process') );
+    var filter_base = require( '../filter_base' );
+    var Promise = require('bluebird');
     var fs = require( 'fs' );
 
+    var filter_name = 'none';
     // keep track of all the pathes we request
     var temp_path = [];
 
-    /**
-     * Inspect the input data and may return usefull
-     * interpreation of them
-     */
-    exports.inspect = function( data ) {
-        var stats;
-        if ( fs.existsSync( data.filename ) ) {
-            stats = fs.statSync( data.filename );
-        }
+    exports.inspect = filter_base.inspect( filter_name );
 
-        data.size = stats.size;
-        data.filter = 'none';
-        return data;
-
-    };
-
-    exports.filter = function ( filename, options ) {
-        options = options || {};
-
-        _.defaults( options, {
-            parameters: [],
-            resultFilename : temp.path( { suffix : '.png' } )
-        } );
-
+    exports.filter = filter_base.execCmd( filter_name, null, {
+        parameters: [],
+        resultFilename : temp.path( { suffix : '.png' } )
+    }, function ( filename, options ) {
         temp_path.push( options.resultFilename );
 
         console.log('filter-none: returning original image' );
 
-        //var cmd = [].concat( options.parameters, [ filename, options.resultFilename ] );
-
-        var promise = new Promise( function( resolve, reject ) {
+        return new Promise( function( resolve, reject ) {
             var in_file = fs.createReadStream( filename );
             var out_file = fs.createWriteStream( options.resultFilename );
             in_file.on( 'error', reject );
@@ -50,25 +30,10 @@
             in_file.pipe( out_file );
             resolve( [ '', '' ]);
         } );
+    });
 
-        promise = promise.then( function( output ) {
-            return {
-                filename : options.resultFilename,
-                output : {
-                    stderr : output[ 0 ],
-                    stdout : output[ 1 ]
-                },
-                parameters : options.parameters
-            };
-        } );
-
-        return promise;
-    };
-
-    exports.cleanup = function() {
+    exports.cleanup = filter_base.cleanup( filter_name, function() {
         console.log('filter-none: cleaning up');
-        temp.cleanup();
-
         // we used temp.path, this is not tracked by temp
         temp_path.forEach( function( path ) {
             if ( fs.existsSync( path ) ) {
@@ -76,6 +41,7 @@
             }
         } );
         temp_path = [];
-    };
+    });
+
 
 }());

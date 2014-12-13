@@ -43,9 +43,17 @@
 
             if ( typeof filterFunc === 'function' ) {
                 /* yields a promise upwards */
+                var start_time = Date.now();
+
                 yield filterFunc( filename ).then( function() {
+                    var time_diff = Date.now() - start_time;
+
+                    // smuggle the time into the arguments list
+                    arguments.length += 1;
+                    arguments[ arguments.length - 1 ] = time_diff;
+
                     return inspectFunc.apply( null, arguments );
-                });
+                } );
             }
         }
     };
@@ -55,7 +63,8 @@
             var filterFunc = filters[ filterName ].cleanup;
             filterFunc();
         }
-    })
+    });
+
     if ( require.main === module ) {
         var filename = process.argv[ process.argv.length - 1 ];
 
