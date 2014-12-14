@@ -38,8 +38,7 @@
                     <h3>{{ filter }}</h3>
                     <p>Filesize: {{ size }} bytes</p>
                     <p>
-                        <a href="#" class="btn btn-primary" role="button">See output</a>
-                        <!--<a href="#" class="btn btn-default" role="button">Button</a>-->
+                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#output-{{filter}}">Output</button>
                     </p>
                 </div>
             </div>
@@ -63,6 +62,35 @@
         <script id="tpl_car_indicator" type="text/x-handlebars-template">
             <li data-target="#carousel-results" data-slide-to="{{nr}}"></li>
         </script>
+        <script id="tpl_filter_output" type="text/x-handlebars-template">
+            <div class="modal fade" id="output-{{filter}}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                            <h4 class="modal-title">{{filter}}: Console output</h4>
+                        </div>
+                        <div class="modal-body">
+                            <h4>Stdout</h4>
+                            <p class="stdout"></p>
+                            <h4>Stderr</h4>
+                            <p class="stderr"></p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </script>
+        <script id="tpl_alert-no-files" type="text/x-handlebars-template">
+            <div class="alert alert-danger alert-dismissable" id="alert-no-files" role="alert">
+                <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <strong>No files selected.</strong>
+            </div>
+        </script>
+        <div class="modals">
+        </div>
         <div class="container-fluid">
             <div class="row">
                 <div class="col-md-12">
@@ -81,6 +109,7 @@
                             <button id="submit" type="submit" class="btn btn-default">Upload</button>
                         </div>
                     </form>
+                    <div class="alerts"></div>
                 </div>
                 <div class="col-md-2">
                     <div class="reg_filters">

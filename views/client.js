@@ -10,13 +10,19 @@ $(document).ready(function() {
     var result_count = 0;
     socket.on('filter update', function (data) {
         console.log('recived a filter result', data);
+        // link a output modal
+        $('.modals').append(getTpl('tpl_filter_output')(data));
+        $('#output-' + data.filter + ' .stdout').html(data.output.stdout.replace(/\n/gi, '<br>'));
+        // add a result entry
         $('#result_table').append(getTpl('tpl_row')(data));
+        // update the carousel
         $('.carousel-inner').append(getTpl('tpl_car_item')(data));
         $('.carousel-inner .item').removeClass('active').first().addClass('active');
         $('.carousel-indicators').append(getTpl('tpl_car_indicator')({ nr: result_count }));
         $('.carousel-indicators li').removeClass('active').first().addClass('active');
         result_count += 1;
         $('#carousel-results').carousel();
+
     });
 
     socket.on('hello', function(data) {
@@ -45,9 +51,11 @@ $(document).ready(function() {
         event.preventDefault(); // Totally stop stuff happening
 
         if (!files) {
-            console.log('no files');
+            $('.alerts').append(getTpl('tpl_alert-no-files')());
             return;
         }
+
+        $('#alert-no-files').remove();
 
         var reader = new FileReader();
         reader.onload = function(evt){
