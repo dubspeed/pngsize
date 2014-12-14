@@ -4,7 +4,6 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width" />
         <title>PNGSize</title>
-
         <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
         <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap-theme.min.css">
         <script src="bower_components/jquery/dist/jquery.min.js"></script>
@@ -33,10 +32,11 @@
         <script id="tpl_row" type="text/x-handlebars-template">
             <div class="col-sm-6 col-md-4" >
             <div class="thumbnail">
-                <img src="{{ url }}" alt="...">
+                <a href="{{url}}" target="_blank"><img src="{{ url }}" alt="{{filter}}"></a>
                 <div class="caption">
                     <h3>{{ filter }}</h3>
                     <p>Filesize: {{ size }} bytes</p>
+                    <p>Time elapsed: {{ time }} ms</p>
                     <p>
                         <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#output-{{filter}}">Output</button>
                     </p>

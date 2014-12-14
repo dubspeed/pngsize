@@ -32,8 +32,7 @@ $(document).ready(function() {
         }));
     });
 
-    //Variable to store your files
-    var files;
+    var files = $('input[type=file]')[0].files;
 
     // Add events
     $('input[type=file]').on('change', prepareUpload);
@@ -41,14 +40,13 @@ $(document).ready(function() {
     // Grab the files and set them to our variable
     function prepareUpload(event) {
         files = event.target.files;
-        console.log('added', files);
     }
 
     $('#upload').on('submit', uploadFiles);
 
     function uploadFiles(event) {
-        event.stopPropagation(); // Stop stuff happening
-        event.preventDefault(); // Totally stop stuff happening
+        event.stopPropagation();
+        event.preventDefault();
 
         if (!files) {
             $('.alerts').append(getTpl('tpl_alert-no-files')());
@@ -57,12 +55,13 @@ $(document).ready(function() {
 
         $('#alert-no-files').remove();
 
-        var reader = new FileReader();
-        reader.onload = function(evt){
-            socket.emit('filter', evt.target.result);
-        };
 
         $.each(files, function(key, value) {
+            var reader = new FileReader();
+            reader.onload = function(evt){
+                console.log('sending', value.name);
+                socket.emit('filter', evt.target.result);
+            };
             reader.readAsBinaryString(value);
         });
 
