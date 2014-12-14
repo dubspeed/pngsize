@@ -15,24 +15,25 @@
     var temp = require( 'temp' ).track();
     var path = require( 'path' );
 
-    var filters = {};
+    var filters = {},
+        filter_names = [];
 
     fs.readdirAsync( 'filters' ).then( function( files ) {
         files.forEach( function( file ) {
             filters[ file ] = require( path.join( 'filters', file ) );
             console.log( 'pngsize: adding filter', file );
+            filter_names.push( file.split( '.' )[0] );
         } );
     } ).catch( function( e ) {
         console.error( 'pngsize: unable to read directory "filters".');
         throw e;
     });
 
-    var check;
     /*
      * this is the generator equivalent of
      * [ filterResult1, filterResult2, ...]
      */
-    module.exports = check = function *( filename ) {
+    var check = function *( filename ) {
 
         console.log( 'checking file', filename );
 
@@ -56,6 +57,11 @@
                 } );
             }
         }
+    };
+
+    module.exports = {
+        filters: filter_names,
+        check : check
     };
 
     process.on('exit', function() {

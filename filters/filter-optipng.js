@@ -16,8 +16,9 @@
 
     exports.filter = filter_base.execCmd( filter_name, optipng, {
         parameters: [],
-        resultFilename : temp.path( { suffix : '.png' } )
+        resultFilename : ''
     }, function ( filename, options ) {
+        options.resultFilename = temp.path( { suffix : '.png' } );
         temp_path.push( options.resultFilename );
         console.log('filter-optipng: running with', JSON.stringify( options ) );
         return [].concat( options.parameters, [ '-out', options.resultFilename, filename ] );

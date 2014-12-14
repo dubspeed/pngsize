@@ -1,19 +1,29 @@
 $(document).ready(function() {
 
-    function buildTable (filter_result) {
-        var $table = $('#result_table'),
-            $tpl = $('#tpl_row').html(),
-            tpl = Handlebars.compile($tpl);
-
-            $table.append( tpl( filter_result ) );
+    function getTpl (name) {
+        return Handlebars.compile($("#"+name).html());
     }
 
     // connect to the website
     var socket = io.connect('http://localhost:3000');
 
+    var result_count = 0;
     socket.on('filter update', function (data) {
         console.log('recived a filter result', data);
-        buildTable(data);
+        $('#result_table').append(getTpl('tpl_row')(data));
+        $('.carousel-inner').append(getTpl('tpl_car_item')(data));
+        $('.carousel-inner .item').removeClass('active').first().addClass('active');
+        $('.carousel-indicators').append(getTpl('tpl_car_indicator')({ nr: result_count }));
+        $('.carousel-indicators li').removeClass('active').first().addClass('active');
+        result_count += 1;
+        $('#carousel-results').carousel();
+    });
+
+    socket.on('hello', function(data) {
+        console.log('hello! filters are', data);
+        $('#filters_list').html(getTpl('tpl_filters')({
+            filters: data
+        }));
     });
 
     //Variable to store your files
@@ -47,7 +57,6 @@ $(document).ready(function() {
         $.each(files, function(key, value) {
             reader.readAsBinaryString(value);
         });
-
 
     }
 });

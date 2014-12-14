@@ -16,8 +16,9 @@
 
     exports.filter = filter_base.execCmd( filter_name, null, {
         parameters: [],
-        resultFilename : temp.path( { suffix : '.png' } )
+        resultFilename : ''
     }, function ( filename, options ) {
+        options.resultFilename = temp.path( { suffix : '.png' } );
         temp_path.push( options.resultFilename );
 
         console.log('filter-none: returning original image' );
