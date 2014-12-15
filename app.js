@@ -48,7 +48,7 @@ app.use( function *( next ) {
  */
 app.use( serve( __dirname + '/views' ) );
 
-// middleware for scoket.io's connect and disconnect
+// middleware for scoket.io's connect and disconnect
 app.io.use( function* ( next ) {
     // on connect
     this.emit( 'hello', pngsize.filters );
@@ -81,10 +81,13 @@ app.io.route( 'filter', function* ( next, image_binary ) {
     var tmp = temp.createWriteStream();
     tmp.write( image_buffer );
     tmp.end();
-    console.log('got message filter', tmp.info)
-    for ( var promise of pngsize.check( tmp.path ) ) {
-        yield promise.then( run_filter.bind( this ) );
-    }
+    yield next;
+    console.log('got message filter', tmp.path);
+    setTimeout(function() {
+        for ( var promise of pngsize.check( tmp.path ) ) {
+            promise.then( run_filter.bind( this ) );
+        }
+    }.bind(this), 1000);
 } );
 
 // listen
