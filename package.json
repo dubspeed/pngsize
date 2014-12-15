@@ -21,6 +21,7 @@
     "pngout-bin": "^2.0.1",
     "streaming-json-stringify": "^1.0.1",
     "temp": "^0.8.1",
-    "koa.io": "0.0.2"
+    "koa.io": "0.0.2",
+    "pngquant-bin": "^2.0.3"
   }
 }
