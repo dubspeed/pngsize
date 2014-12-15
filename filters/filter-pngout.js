@@ -24,14 +24,7 @@
         return [].concat( [ filename, options.resultFilename ], options.parameters );
     });
 
-    exports.cleanup = filter_base.cleanup( filter_name, function() {
-        console.log('filter-pngout: cleaning up pngout');
-        // we used temp.path, this is not tracked by temp
-        temp_path.forEach( function( path ) {
-            if ( fs.existsSync( path ) ) {
-                fs.unlinkSync( path );
-            }
-        } );
+    exports.cleanup = filter_base.cleanupManualTemps( filter_name, temp_path, function() {
         temp_path = [];
     });
 

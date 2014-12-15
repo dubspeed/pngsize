@@ -75,4 +75,20 @@
         };
     };
 
+    exports.cleanupManualTemps = function( filter_name, temp_files, callback ) {
+        return function() {
+            console.log( filter_name + ': cleaning up pngcrush' );
+
+            temp_files.forEach( function( path ) {
+                if ( fs.existsSync( path ) ) {
+                    fs.unlinkSync( path );
+                }
+            } );
+
+            if ( typeof callback === 'function' ) {
+                callback();
+            }
+        };
+    };
+
 }());
