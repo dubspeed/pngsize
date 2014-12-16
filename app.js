@@ -48,7 +48,7 @@ app.use( function *( next ) {
  */
 app.use( serve( __dirname + '/views' ) );
 
-// middleware for scoket.io's connect and disconnect
+// middleware for scoket.io's connect and disconnect
 app.io.use( function* ( next ) {
     // on connect
     this.emit( 'hello', pngsize.filters );
