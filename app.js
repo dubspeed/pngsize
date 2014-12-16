@@ -24,7 +24,7 @@ app.use( logger() );
 app.use( function *( next ) {
     yield next;
     if ( this.body || !this.idempotent ) return;
-    this.redirect( '/views/404.html' );
+    this.redirect( '/404.html' );
 });
 
 /**
