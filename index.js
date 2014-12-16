@@ -46,15 +46,11 @@
                 /* yields a promise upwards */
                 var start_time = Date.now();
 
-                yield filterFunc( filename ).then( function() {
+                yield filterFunc( filename ).then( function( inspectFunc, result ) {
                     var time_diff = Date.now() - start_time;
 
-                    // smuggle the time into the arguments list
-                    arguments.length += 1;
-                    arguments[ arguments.length - 1 ] = time_diff;
-
-                    return inspectFunc.apply( null, arguments );
-                } );
+                    return inspectFunc.apply( null, [ result, time_diff ] );
+                }.bind(null, inspectFunc) );
             }
         }
     };

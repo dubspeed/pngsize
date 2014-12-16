@@ -29,12 +29,59 @@
         </style>
     </head>
     <body>
-        <script id="tpl_row" type="text/x-handlebars-template" src="tpls/row.tpl"></script>
-        <script id="tpl_filters" type="text/x-handlebars-template" src="tpls/filters.tpl"></script>
-        <script id="tpl_car_item" type="text/x-handlebars-template" src="tpls/carousel_item.tpl"></script>
-        <script id="tpl_filter_output" type="text/x-handlebars-template" src="tpls/filter_output.tpl"></script>
+        <script id="tpl_row" type="text/x-handlebars-template">
+            <div class="col-sm-6 col-md-4" >
+            <div class="thumbnail">
+                <a href="{{url}}" target="_blank"><img src="{{ url }}" alt="{{filter}}"></a>
+                <div class="caption">
+                    <h3>{{ filter }}</h3>
+                    <p>Filesize: {{ size }} bytes</p>
+                    <p>Time elapsed: {{ time }} ms</p>
+                    <p>
+                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#output-{{filter}}">Output</button>
+                    </p>
+                </div>
+            </div>
+            </div>
+        </script>
+        <script id="tpl_filters" type="text/x-handlebars-template">
+            <ul>
+                {{#each filters}}
+                <li>{{this}}</li>
+                {{/each}}
+            </ul>
+        </script>
+        <script id="tpl_car_item" type="text/x-handlebars-template">
+            <div class="item active">
+              <img src="{{ url }}" alt="" class="center">
+              <div class="carousel-caption">
+                <h3>{{ filter }}</h3><small>{{size}} bytes</small>
+              </div>
+            </div>
+        </script>
         <script id="tpl_car_indicator" type="text/x-handlebars-template">
             <li data-target="#carousel-results" data-slide-to="{{nr}}"></li>
+        </script>
+        <script id="tpl_filter_output" type="text/x-handlebars-template">
+            <div class="modal fade" id="output-{{filter}}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                            <h4 class="modal-title">{{filter}}: Console output</h4>
+                        </div>
+                        <div class="modal-body">
+                            <h4>Stdout</h4>
+                            <p class="stdout"></p>
+                            <h4>Stderr</h4>
+                            <p class="stderr"></p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </script>
         <script id="tpl_alert-no-files" type="text/x-handlebars-template">
             <div class="alert alert-danger alert-dismissable" id="alert-no-files" role="alert">

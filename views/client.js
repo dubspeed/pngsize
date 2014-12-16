@@ -10,11 +10,12 @@ $(document).ready(function() {
     var result_count = 0;
     socket.on('filter update', function (data) {
         console.log('recived a filter result', data);
+        var sorted_data = data;
         // link a output modal
         $('.modals').append(getTpl('tpl_filter_output')(data));
         $('#output-' + data.filter + ' .stdout').html(data.output.stdout.replace(/\n/gi, '<br>'));
         // add a result entry
-        $('#result_table').append(getTpl('tpl_row')(data));
+        $('#result_table').append(getTpl('tpl_row')(sorted_data));
         // update the carousel
         $('.carousel-inner').append(getTpl('tpl_car_item')(data));
         $('.carousel-inner .item').removeClass('active').first().addClass('active');
